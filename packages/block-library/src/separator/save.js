@@ -27,8 +27,6 @@ export default function separatorSave( { attributes } ) {
 	const style = {
 		backgroundColor: backgroundClass ? undefined : customColor,
 		color: colorClass ? undefined : customColor,
-		marginBottom: attributes.style?.spacing?.margin?.bottom,
-		marginTop: attributes.style?.spacing?.margin?.top,
 	};
 
 	return <hr { ...useBlockProps.save( { className, style } ) } />;

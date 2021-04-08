@@ -39,6 +39,7 @@ function SeparatorEdit( props ) {
 					'wp-block-separator',
 					'wp-block-separator-wrapper'
 				) }
+				style={ {} }
 			>
 				<BoxControlVisualizer
 					values={ style?.spacing?.margin }

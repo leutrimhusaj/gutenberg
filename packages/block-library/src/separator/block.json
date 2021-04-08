@@ -8,14 +8,14 @@
 		},
 		"customColor": {
 			"type": "string"
-		},
-		"style": {
-			"type": "object"
 		}
 	},
 	"supports": {
 		"anchor": true,
-		"align": [ "center", "wide", "full" ]
+		"align": [ "center", "wide", "full" ],
+		"spacing": {
+			"margin": [ "top", "bottom" ]
+		}
 	},
 	"editorStyle": "wp-block-separator-editor",
 	"style": "wp-block-separator"
