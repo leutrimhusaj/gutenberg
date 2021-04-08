@@ -17,8 +17,9 @@ import { store as editSiteStore } from '../../store';
 
 export function useHasSpacingPanel( context ) {
 	const hasPadding = useHasPadding( context );
+	const hasMargin = useHasMargin( context );
 
-	return hasPadding;
+	return hasPadding || hasMargin;
 }
 
 export function useHasPadding( { name, supports } ) {
@@ -26,6 +27,12 @@ export function useHasPadding( { name, supports } ) {
 		useEditorFeature( 'spacing.customPadding', name ) &&
 		supports.includes( 'padding' )
 	);
+}
+
+function useHasMargin( { name, supports } ) {
+	const settings = useEditorFeature( 'spacing.customMargin', name );
+
+	return settings && supports.includes( 'margin' );
 }
 
 function filterUnitsWithSettings( settings = [], units = [] ) {
@@ -82,6 +89,7 @@ function useThemeValues( name, feature ) {
 export default function SpacingPanel( { context, getStyle, setStyle } ) {
 	const { name } = context;
 	const showPaddingControl = useHasPadding( context );
+	const showMarginControl = useHasMargin( context );
 	const units = useCustomUnits( { contextName: name } );
 
 	const paddingValues = getStyle( name, 'padding' );
@@ -91,6 +99,15 @@ export default function SpacingPanel( { context, getStyle, setStyle } ) {
 	const setPaddingValues = ( newPaddingValues ) => {
 		const padding = filterValuesBySides( newPaddingValues, paddingSides );
 		setStyle( name, 'padding', padding );
+	};
+
+	const marginValues = getStyle( name, 'margin' );
+	const themeMarginValues = useThemeValues( name, 'margin' );
+	const marginSides = useCustomSides( name, 'margin' );
+
+	const setMarginValues = ( newMarginValues ) => {
+		const margin = filterValuesBySides( newMarginValues, marginSides );
+		setStyle( name, 'margin', margin );
 	};
 
 	return (
@@ -103,6 +120,16 @@ export default function SpacingPanel( { context, getStyle, setStyle } ) {
 					sides={ paddingSides }
 					units={ units }
 					resetValues={ themePaddingValues }
+				/>
+			) }
+			{ showMarginControl && (
+				<BoxControl
+					values={ marginValues }
+					onChange={ setMarginValues }
+					label={ __( 'Margin' ) }
+					sides={ marginSides }
+					units={ units }
+					resetValues={ themeMarginValues }
 				/>
 			) }
 		</PanelBody>
