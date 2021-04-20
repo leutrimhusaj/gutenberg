@@ -30,6 +30,7 @@ import { useEventHandlers } from './use-event-handlers';
 import { useNavModeExit } from './use-nav-mode-exit';
 import { useBlockNodes } from './use-block-nodes';
 import { useScrollIntoView } from './use-scroll-into-view';
+import { useIntersectionObserver } from './use-intersection-observer';
 import { store as blockEditorStore } from '../../../store';
 
 /**
@@ -109,6 +110,7 @@ export function useBlockProps( props = {}, { __unstableIsHtml } = {} ) {
 		useEventHandlers( clientId ),
 		useNavModeExit( clientId ),
 		useIsHovered(),
+		useIntersectionObserver(),
 		useMovingAnimation( {
 			isSelected: isPartOfSelection,
 			adjustScrolling,
