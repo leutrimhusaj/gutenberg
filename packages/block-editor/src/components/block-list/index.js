@@ -109,8 +109,23 @@ function Items( {
 
 		return new Observer( callback, { threshold: 0.1 } );
 	}, [ setIntersectingBlocks ] );
-	const order = useSelect(
-		( select ) => select( blockEditorStore ).getBlockOrder( rootClientId ),
+	const { order, selectedBlocks } = useSelect(
+		( select ) => {
+			const {
+				getBlockOrder,
+				getSelectedBlockClientId,
+				getMultiSelectedBlockClientIds,
+				hasMultiSelection,
+			} = select( blockEditorStore );
+			return {
+				order: getBlockOrder( rootClientId ),
+				selectedBlocks: new Set(
+					hasMultiSelection()
+						? getMultiSelectedBlockClientIds()
+						: [ getSelectedBlockClientId() ]
+				),
+			};
+		},
 		[ rootClientId ]
 	);
 
@@ -119,7 +134,10 @@ function Items( {
 			{ order.map( ( clientId, index ) => (
 				<AsyncModeProvider
 					key={ clientId }
-					value={ ! intersectingBlocks.has( clientId ) }
+					value={
+						! intersectingBlocks.has( clientId ) &&
+						! selectedBlocks.has( clientId )
+					}
 				>
 					<IntersectionObserver.Provider
 						value={ intersectionObserver }
