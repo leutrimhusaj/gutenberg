@@ -243,13 +243,9 @@ class EditorPage {
 	async openBlockSettings( block ) {
 		await block.click();
 
-		const buttonElementName = isAndroid()
-			? '//*'
-			: '//XCUIElementTypeButton';
-
-		const locator = `${ buttonElementName }[@${ this.accessibilityIdXPathAttrib }="Open Settings"]`;
-
-		const settingsButton = await block.elementByXPath( locator );
+		const settingsButton = await block.elementByAccessibilityId(
+			'Open Settings'
+		);
 		await settingsButton.click();
 	}
 
@@ -592,12 +588,16 @@ class EditorPage {
 	// =============================
 
 	async getSearchBlockChild( testKeys ) {
-		let locator = `//XCUIElementTypeOther[@name="${ testKeys.ios }"]`;
+		let blockChild = null;
 		if ( isAndroid() ) {
-			locator = `//android.view.View[starts-with(@content-desc, "${ testKeys.android }")]/android.widget.EditText`;
+			const locator = `//android.view.View[starts-with(@content-desc, "${ testKeys.android }")]/android.widget.EditText`;
+			blockChild = await this.driver.elementByXPath( locator );
+		} else {
+			blockChild = await this.driver.elementByAccessibilityId(
+				testKeys.ios
+			);
 		}
-
-		return await this.driver.elementByXPath( locator );
+		return blockChild;
 	}
 
 	async sendTextToSearchBlockChild( testKeys, text, clear = true ) {
@@ -608,10 +608,9 @@ class EditorPage {
 	async toggleHideSearchLabelSetting( block ) {
 		await this.openBlockSettings( block );
 
-		const elementName = isAndroid() ? '//*' : '//XCUIElementTypeOther';
-
-		const locator = `${ elementName }[starts-with(@${ this.accessibilityIdXPathAttrib }, "Hide search heading")]`;
-		return await this.driver.elementByXPath( locator ).click();
+		return await this.driver
+			.elementByAccessibilityId( 'Hide search heading. Off' )
+			.click();
 	}
 
 	async changeSearchButtonPositionSetting( block, buttonPosition ) {
@@ -632,10 +631,9 @@ class EditorPage {
 	async toggleSearchIconOnlySetting( block ) {
 		await this.openBlockSettings( block );
 
-		const elementName = isAndroid() ? '//*' : '//XCUIElementTypeOther';
-
-		const locator = `${ elementName }[starts-with(@${ this.accessibilityIdXPathAttrib }, "Use icon button")]`;
-		return await this.driver.elementByXPath( locator ).click();
+		return await await this.driver
+			.elementByAccessibilityId( 'Use icon button. Off' )
+			.click();
 	}
 
 	// =============================
