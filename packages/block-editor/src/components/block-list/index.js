@@ -7,18 +7,8 @@ import classnames from 'classnames';
  * WordPress dependencies
  */
 import { AsyncModeProvider, useSelect } from '@wordpress/data';
-import {
-	useRef,
-	createContext,
-	useState,
-	useContext,
-} from '@wordpress/element';
-import {
-	useViewportMatch,
-	useMergeRefs,
-	useRefEffect,
-} from '@wordpress/compose';
-import { getScrollContainer } from '@wordpress/dom';
+import { useRef, createContext, useState, useMemo } from '@wordpress/element';
+import { useViewportMatch, useMergeRefs } from '@wordpress/compose';
 
 /**
  * Internal dependencies
@@ -35,7 +25,6 @@ import { LayoutProvider, defaultLayout } from './layout';
 export const BlockNodes = createContext();
 export const SetBlockNodes = createContext();
 export const IntersectionObserver = createContext();
-const IntersectingBlocks = createContext();
 
 export default function BlockList( { className, __experimentalLayout } ) {
 	const ref = useRef();
@@ -64,12 +53,43 @@ export default function BlockList( { className, __experimentalLayout } ) {
 		};
 	}, [] );
 
-	const [ intersectionObserver, setIntersectionObserver ] = useState();
+	return (
+		<BlockNodes.Provider value={ blockNodes }>
+			{ insertionPoint }
+			<BlockPopover />
+			<div
+				ref={ useMergeRefs( [ ref, useBlockDropZone() ] ) }
+				className={ classnames(
+					'block-editor-block-list__layout is-root-container',
+					className,
+					{
+						'is-typing': isTyping,
+						'is-outline-mode': isOutlineMode,
+						'is-focus-mode': isFocusMode && isLargeViewport,
+						'is-navigate-mode': isNavigationMode,
+					}
+				) }
+			>
+				<SetBlockNodes.Provider value={ setBlockNodes }>
+					<BlockListItems
+						__experimentalLayout={ __experimentalLayout }
+					/>
+				</SetBlockNodes.Provider>
+			</div>
+		</BlockNodes.Provider>
+	);
+}
+
+function Items( {
+	placeholder,
+	rootClientId,
+	renderAppender,
+	__experimentalAppenderTagName,
+	__experimentalLayout: layout = defaultLayout,
+} ) {
 	const [ intersectingBlocks, setIntersectingBlocks ] = useState( new Set() );
-	const refCallback = useRefEffect( ( node ) => {
-		const {
-			IntersectionObserver: Observer,
-		} = node.ownerDocument.defaultView;
+	const intersectionObserver = useMemo( () => {
+		const { IntersectionObserver: Observer } = window;
 
 		if ( ! Observer ) {
 			return;
@@ -87,57 +107,8 @@ export default function BlockList( { className, __experimentalLayout } ) {
 			} );
 		}
 
-		const observer = new Observer( callback, {
-			threshold: 0.1,
-			root: getScrollContainer( node ),
-		} );
-
-		setIntersectionObserver( observer );
-	}, [] );
-
-	return (
-		<BlockNodes.Provider value={ blockNodes }>
-			{ insertionPoint }
-			<BlockPopover />
-			<div
-				ref={ useMergeRefs( [ ref, useBlockDropZone(), refCallback ] ) }
-				className={ classnames(
-					'block-editor-block-list__layout is-root-container',
-					className,
-					{
-						'is-typing': isTyping,
-						'is-outline-mode': isOutlineMode,
-						'is-focus-mode': isFocusMode && isLargeViewport,
-						'is-navigate-mode': isNavigationMode,
-					}
-				) }
-			>
-				<SetBlockNodes.Provider value={ setBlockNodes }>
-					<IntersectionObserver.Provider
-						value={ intersectionObserver }
-					>
-						<IntersectingBlocks.Provider
-							value={ intersectingBlocks }
-						>
-							<BlockListItems
-								__experimentalLayout={ __experimentalLayout }
-							/>
-						</IntersectingBlocks.Provider>
-					</IntersectionObserver.Provider>
-				</SetBlockNodes.Provider>
-			</div>
-		</BlockNodes.Provider>
-	);
-}
-
-function Items( {
-	placeholder,
-	rootClientId,
-	renderAppender,
-	__experimentalAppenderTagName,
-	__experimentalLayout: layout = defaultLayout,
-} ) {
-	const intersectingBlocks = useContext( IntersectingBlocks );
+		return new Observer( callback, { threshold: 0.1 } );
+	}, [ setIntersectingBlocks ] );
 	const order = useSelect(
 		( select ) => select( blockEditorStore ).getBlockOrder( rootClientId ),
 		[ rootClientId ]
@@ -150,14 +121,18 @@ function Items( {
 					key={ clientId }
 					value={ ! intersectingBlocks.has( clientId ) }
 				>
-					<BlockListBlock
-						rootClientId={ rootClientId }
-						clientId={ clientId }
-						// This prop is explicitely computed and passed down
-						// to avoid being impacted by the async mode
-						// otherwise there might be a small delay to trigger the animation.
-						index={ index }
-					/>
+					<IntersectionObserver.Provider
+						value={ intersectionObserver }
+					>
+						<BlockListBlock
+							rootClientId={ rootClientId }
+							clientId={ clientId }
+							// This prop is explicitely computed and passed down
+							// to avoid being impacted by the async mode
+							// otherwise there might be a small delay to trigger the animation.
+							index={ index }
+						/>
+					</IntersectionObserver.Provider>
 				</AsyncModeProvider>
 			) ) }
 			{ order.length < 1 && placeholder }
