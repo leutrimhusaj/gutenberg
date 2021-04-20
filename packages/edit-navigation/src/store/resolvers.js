@@ -101,6 +101,7 @@ function createNavigationBlock( menuItems ) {
 		}
 
 		const sortedItems = sortBy( items, 'menu_order' );
+
 		for ( const item of sortedItems ) {
 			let menuItemInnerBlocks = [];
 			if ( itemsByParentID[ item.id ]?.length ) {
@@ -147,6 +148,7 @@ function convertMenuItemToBlock( menuItem, innerBlocks = [] ) {
 		className: menuItem.classes.join( ' ' ),
 		description: menuItem.description,
 		rel: menuItem.xfn.join( ' ' ),
+		type: menuItem.type,
 	};
 
 	return createBlock( 'core/navigation-link', attributes, innerBlocks );
